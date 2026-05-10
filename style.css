@@ -1,0 +1,400 @@
+/* ═══════════════════════════════════════════
+   Dictionnaire imparfait — feuille de style
+   ═══════════════════════════════════════════ */
+
+/* ── Tokens ── */
+:root {
+    --encre:       #1f1b16;
+    --encre-doux:  #5a4e42;
+    --brun:        #7b6a58;
+    --brun-clair:  #9a8878;
+    --bordure:     #e2d8c8;
+    --bordure-2:   #cdbfae;
+    --fond:        #f7f4ee;
+    --fond-carte:  #ffffff;
+    --fond-doux:   #faf7f2;
+    --fond-tag:    #f3efe8;
+    --rouge-coeur: #c0392b;
+
+    --rayon:   10px;
+    --rayon-lg: 14px;
+
+    --taille-base: 1rem;       /* 16px */
+    --taille-sm:   0.875rem;   /* 14px */
+    --taille-xs:   0.8rem;     /* 12.8px */
+}
+
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--fond);
+    color: var(--encre);
+    margin: 0;
+    line-height: 1.6;
+    font-size: var(--taille-base);
+}
+
+.container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 1.25rem 4rem;
+}
+
+h1, h2, h3 {
+    font-weight: normal;
+    line-height: 1.25;
+    margin-top: 0;
+}
+
+a {
+    color: var(--encre);
+    text-decoration: underline;
+}
+
+a:hover {
+    color: var(--brun);
+}
+
+/* ── Carte ── */
+.card {
+    background: var(--fond-carte);
+    padding: 1.75rem;
+    margin: 1.25rem 0;
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon-lg);
+}
+
+/* ── Boutons — source de vérité unique ── */
+
+/* Base commune : s'applique à TOUT ce qui ressemble à un bouton */
+.btn,
+a.btn,
+button.btn,
+button[type="submit"] {
+    display: inline-block;
+    padding: 0.65rem 1.3rem;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: var(--taille-sm);       /* 14px — immuable */
+    line-height: 1.4;
+    border: 1px solid var(--encre);
+    border-radius: var(--rayon);
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    /* Empêcher les héritages qui font dériver la taille */
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* Primaire — noir (défaut) */
+.btn,
+a.btn,
+button.btn,
+button[type="submit"] {
+    background: var(--encre);
+    color: var(--fond);
+}
+
+.btn:hover,
+a.btn:hover,
+button.btn:hover,
+button[type="submit"]:hover {
+    background: #3a342c;
+    border-color: #3a342c;
+    color: var(--fond);
+}
+
+/* Secondaire — blanc bordé */
+.btn.secondary,
+a.btn.secondary,
+button.secondary {
+    background: var(--fond-carte);
+    color: var(--encre-doux);
+    border-color: var(--bordure-2);
+}
+
+.btn.secondary:hover,
+a.btn.secondary:hover,
+button.secondary:hover {
+    background: var(--fond-tag);
+    border-color: var(--brun);
+    color: var(--encre);
+}
+
+/* Ghost — lien discret, pas de bloc */
+.btn.ghost,
+a.btn.ghost {
+    background: none;
+    color: var(--brun);
+    border-color: transparent;
+    text-decoration: underline;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.btn.ghost:hover,
+a.btn.ghost:hover { color: var(--encre); }
+
+/* Retour/annuler — texte seul */
+.btn-retour {
+    background: none;
+    border: none;
+    color: var(--brun);
+    cursor: pointer;
+    font-family: Georgia, serif;
+    font-size: var(--taille-sm);
+    padding: 0;
+    text-decoration: underline;
+    line-height: 1.4;
+}
+.btn-retour:hover { color: var(--encre); }
+
+.actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* ── Formulaires ── */
+label {
+    display: block;
+    font-size: var(--taille-sm);
+    color: var(--encre-doux);
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.01em;
+}
+
+.field-hint {
+    font-size: var(--taille-xs);
+    color: var(--brun-clair);
+    font-weight: normal;
+    font-style: italic;
+    margin-left: 0.35rem;
+}
+
+input[type="text"],
+input[type="email"],
+input:not([type]),
+textarea,
+select {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    font-family: Georgia, serif;
+    font-size: var(--taille-sm);
+    color: var(--encre);
+    background: var(--fond-carte);
+    border: 1px solid var(--bordure-2);
+    border-radius: var(--rayon);
+    margin-bottom: 1.25rem;
+    transition: border-color 0.15s;
+    appearance: none;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--brun);
+}
+
+textarea {
+    min-height: 90px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+select[multiple] {
+    min-height: 130px;
+    padding: 0.4rem;
+}
+
+/* ── Tags / chips ── */
+.tag {
+    display: inline-block;
+    background: var(--fond-tag);
+    color: var(--encre-doux);
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: var(--taille-xs);
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: border-color 0.12s;
+}
+
+.tag:hover {
+    border-color: var(--bordure-2);
+    color: var(--encre);
+}
+
+.entry-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.6rem;
+}
+
+/* ── Navigation interne ── */
+.nav {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+}
+
+/* ── Muted ── */
+.muted { color: var(--brun-clair); }
+
+/* ── Blocs de statut ── */
+.alert   { color: #9b1c1c; font-weight: 600; }
+.warning { color: #8a5a00; font-weight: 600; }
+.good    { color: #1d6b35; font-weight: 600; }
+
+/* ── Analyse : qa-blocks ── */
+.qa-block {
+    padding: 1rem 0;
+    border-bottom: 1px solid #f0ece4;
+}
+.qa-block:last-of-type { border-bottom: none; }
+
+.question {
+    font-weight: 600;
+    font-size: var(--taille-sm);
+    margin-bottom: 0.4rem;
+    line-height: 1.4;
+}
+
+.answer {
+    display: flex;
+    gap: 0.8rem;
+    align-items: baseline;
+    line-height: 1.5;
+    flex-wrap: wrap;
+}
+
+.note, .status-ok, .status-bad {
+    display: inline-block;
+    min-width: 88px;
+    text-align: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: var(--taille-xs);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.note        { background: var(--fond-tag);  color: var(--encre); }
+.status-ok   { background: #eef7ee; color: #1d6b35; }
+.status-bad  { background: #fdecec; color: #9b1c1c; }
+.comment     { color: var(--brun); font-size: var(--taille-sm); }
+
+.block-comment {
+    margin-top: 0.9rem;
+    padding: 0.85rem 1rem;
+    background: var(--fond-doux);
+    border-radius: var(--rayon);
+    line-height: 1.6;
+    font-size: var(--taille-sm);
+    color: var(--encre-doux);
+}
+
+.score-line {
+    margin-top: 0.75rem;
+    padding: 0.7rem 1rem;
+    background: var(--fond-doux);
+    border-radius: var(--rayon);
+    font-size: var(--taille-sm);
+}
+
+.score-final {
+    font-size: 2.4rem;
+    font-weight: bold;
+    margin-bottom: 0.4rem;
+    line-height: 1;
+}
+
+/* ── Tableaux ── */
+table { width: 100%; border-collapse: collapse; }
+th, td {
+    border-bottom: 1px solid var(--bordure);
+    padding: 0.7rem 0.5rem;
+    text-align: left;
+    font-size: var(--taille-sm);
+}
+th { color: var(--brun); font-weight: 600; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+    .container { padding: 0 1rem 3rem; }
+
+    .answer { flex-direction: column; gap: 0.3rem; }
+
+    .note, .status-ok, .status-bad { min-width: auto; }
+
+    .actions { flex-direction: column; }
+    .actions .btn { width: 100%; text-align: center; }
+}
+
+/* ── Footer ── */
+.site-footer {
+    margin-top: 5rem;
+    padding: 2rem 0 3rem;
+    border-top: 1px solid var(--bordure);
+}
+
+.footer-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.footer-texte {
+    font-size: var(--taille-sm);
+    color: var(--encre-doux);
+    line-height: 1.7;
+    margin: 0;
+}
+
+.footer-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.footer-nav a {
+    font-size: var(--taille-sm);
+    color: var(--brun);
+    text-decoration: none;
+}
+
+.footer-nav a:hover { color: var(--encre); }
+
+.footer-sep {
+    color: var(--bordure-2);
+    font-size: var(--taille-sm);
+}
+
+.footer-copy {
+    font-size: var(--taille-xs);
+    color: var(--brun-clair);
+    margin: 0;
+}
+
+.footer-copy a {
+    color: var(--brun-clair);
+}
+
+.footer-copy a:hover { color: var(--brun); }
+
+/* ── Navigation commune (nav.php) ── */
+.nav-capsules {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
