@@ -33,7 +33,7 @@ Ce projet est un chantier ouvert. N'importe qui peut proposer un mot. Chaque pro
 ### 1. Cloner le dépôt
 
 ```bash
-git clone https://github.com/charleshenriboisseau/dictionnaire-imparfait.git
+git clone https://github.com/ChB-1981/dictionnaire-imparfait.git
 cd dictionnaire-imparfait
 ```
 
