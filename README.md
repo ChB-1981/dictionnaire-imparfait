@@ -1,6 +1,6 @@
 # Dictionnaire imparfait
 
-> Un dictionnaire collaboratif de mots qui n'existent pas encore en français, analysés par l'IA et validés par des humains.
+> Un dictionnaire collaboratif de mots qui n'existent pas encore en français.
 
 **Site de référence :** [dictionnaire.charleshenriboisseau.fr](https://dictionnaire.charleshenriboisseau.fr)
 
@@ -13,9 +13,9 @@ Il existe des expériences que la langue laisse encore dans l'ombre. Des sensati
 Ce projet est un chantier ouvert. N'importe qui peut proposer un mot. Chaque proposition est analysée par un modèle de langage selon des critères définis, puis validée par l'utilisateur. Les mots retenus entrent dans la langue.
 
 **Trois principes :**
-- L'être avant l'avoir — un mot doit révéler une expérience humaine.
-- L'humain avant la machine — l'IA analyse et suggère, l'humain décide.
-- Le mot avant le nom — anonymat total, aucun compte requis.
+- L'être avant l'avoir : un mot doit révéler une expérience humaine.
+- L'humain avant la machine : l'IA analyse et suggère, l'humain décide.
+- Le mot avant le nom : anonymat total, aucun compte requis.
 
 ---
 
