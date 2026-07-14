@@ -24,8 +24,19 @@ if (!$id) {
 
 // IP réelle même derrière un proxy
 $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-$ip = trim(explode(',', $ip)[0]); // Prendre la première IP si liste
-$ip = substr($ip, 0, 45);        // Limiter à 45 chars (IPv6)
+$ip = trim(explode(',', $ip)[0]);
+$ip = substr($ip, 0, 45);
+
+// Rate limiting : max 30 votes par IP par heure
+$cle = 'vote_' . md5($ip);
+if (!isset($_SESSION[$cle])) $_SESSION[$cle] = ['count' => 0, 'reset' => time() + 3600];
+if (time() > $_SESSION[$cle]['reset']) $_SESSION[$cle] = ['count' => 0, 'reset' => time() + 3600];
+if ($_SESSION[$cle]['count'] >= 30) {
+    http_response_code(429);
+    echo json_encode(['error' => 'Trop de votes. Réessayez plus tard.']);
+    exit;
+}
+$_SESSION[$cle]['count']++;
 
 $pdo = db($config);
 

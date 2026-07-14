@@ -13,7 +13,7 @@ $orderBy = match($tri) {
     default  => 'm.mot_original COLLATE utf8mb4_unicode_ci ASC',
 };
 
-$select = "SELECT m.id, m.mot_original, m.type_original, m.etymologie_originale,
+$select = "SELECT m.id, m.mot_original, m.type_original, m.genre_mot, m.type_entree, m.etymologie_originale,
                m.definition_1_originale, m.registre_definition_1,
                m.definition_2_originale, m.exemple_original, m.coeurs,
                m.created_at,
@@ -50,6 +50,24 @@ if ($tri === 'alpha') {
 $registreActif = null;
 foreach ($registres as $r) {
     if ((int)$r['id'] === $registreId) { $registreActif = $r['nom']; break; }
+}
+
+// Helper : affiche type + genre + type_entree si renseigné
+function type_entree_label_dico(string $val): string {
+    return match($val) {
+        'reactive'   => 'réactivé',
+        'importe'    => 'importé',
+        'ressuscite' => 'ressuscité',
+        default      => '',
+    };
+}
+function type_avec_genre(array $mot): string {
+    $type   = h($mot['type_original']);
+    $genre  = !empty($mot['genre_mot']) ? ' ' . h($mot['genre_mot']) : '';
+    $entree = !empty($mot['type_entree']) && $mot['type_entree'] !== 'invente'
+        ? ' · ' . h(type_entree_label_dico($mot['type_entree']))
+        : '';
+    return $type . $genre . $entree;
 }
 ?>
 <!doctype html>
@@ -159,17 +177,6 @@ foreach ($registres as $r) {
         /* ── Section lettre ── */
         .lettre-section { margin-bottom: 2.5rem; }
         .lettre-section .entree:first-of-type { padding-top: 1.25rem; }
-
-        .lettre-titre {
-            font-size: 1.6rem;
-            font-weight: normal;
-            font-style: italic;
-            color: var(--brun);
-            border-bottom: none;
-            padding-bottom: 0;
-            margin: 0.5rem 0 0;
-        }
-
 
         .lettre-titre {
             display: flex;
@@ -381,6 +388,13 @@ foreach ($registres as $r) {
             .dico-controls { flex-direction: column; align-items: flex-start; }
         }
     </style>
+    
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
 </head>
 <body>
 <div class="container">
@@ -448,15 +462,19 @@ foreach ($registres as $r) {
                 $voted        = (bool) $mot['deja_vote'];
                 $urlMot       = 'https://' . $_SERVER['HTTP_HOST'] . '/view.php?id=' . $mot['id'];
                 $textePartage = $mot['mot_original']
-                    . ' — ' . $mot['definition_1_originale']
-                    . ' « ' . $mot['exemple_original'] . ' »'
+                    . ', ' . $mot['type_original']
+                    . (!empty($mot['genre_mot']) ? ', ' . $mot['genre_mot'] : '')
+                    . ' • [' . $mot['etymologie_originale'] . ']'
+                    . ' • ' . $mot['definition_1_originale']
+                    . (!empty($mot['definition_2_originale']) ? ' Par ext. ' . $mot['definition_2_originale'] : '')
+                    . ' • « ' . $mot['exemple_original'] . ' »'
                     . '  ' . $urlMot;
             ?>
             <article class="entree">
 
                 <p class="entree-titre">
                     <span class="entree-mot"><?= h($mot['mot_original']) ?></span>
-                    <span class="entree-type"><?= h($mot['type_original']) ?></span>
+                    <span class="entree-type"><?= type_avec_genre($mot) ?></span>
                 </p>
 
                 <?php if (!empty($mot['etymologie_originale'])): ?>
@@ -514,14 +532,18 @@ foreach ($registres as $r) {
         $voted        = (bool) $mot['deja_vote'];
         $urlMot       = 'https://' . $_SERVER['HTTP_HOST'] . '/view.php?id=' . $mot['id'];
         $textePartage = $mot['mot_original']
-            . ' — ' . $mot['definition_1_originale']
-            . ' « ' . $mot['exemple_original'] . ' »'
+            . ', ' . $mot['type_original']
+            . (!empty($mot['genre_mot']) ? ', ' . $mot['genre_mot'] : '')
+            . ' • [' . $mot['etymologie_originale'] . ']'
+            . ' • ' . $mot['definition_1_originale']
+            . (!empty($mot['definition_2_originale']) ? ' Par ext. ' . $mot['definition_2_originale'] : '')
+            . ' • « ' . $mot['exemple_original'] . ' »'
             . '  ' . $urlMot;
     ?>
     <article class="entree">
         <p class="entree-titre">
             <span class="entree-mot"><?= h($mot['mot_original']) ?></span>
-            <span class="entree-type"><?= h($mot['type_original']) ?></span>
+            <span class="entree-type"><?= type_avec_genre($mot) ?></span>
             <?php if ($tri === 'recent'): ?>
                 <?php
                 $moisFr = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
@@ -656,7 +678,6 @@ document.querySelectorAll('.btn-ecouter').forEach(function(btn) {
         var self = this;
         var id   = self.dataset.id;
 
-        // Si ce bouton joue déjà → arrêter
         if (btnEnCours === self && audioEnCours) {
             audioEnCours.pause();
             audioEnCours = null;
@@ -666,7 +687,6 @@ document.querySelectorAll('.btn-ecouter').forEach(function(btn) {
             return;
         }
 
-        // Arrêter l'audio précédent si un autre jouait
         if (audioEnCours) {
             audioEnCours.pause();
             audioEnCours = null;
@@ -676,7 +696,6 @@ document.querySelectorAll('.btn-ecouter').forEach(function(btn) {
             }
         }
 
-        // Chargement
         self.textContent = '… Chargement';
         self.classList.add('loading');
         btnEnCours = self;
@@ -707,7 +726,6 @@ document.querySelectorAll('.btn-ecouter').forEach(function(btn) {
         });
     });
 });
-
 </script>
 </body>
 </html>

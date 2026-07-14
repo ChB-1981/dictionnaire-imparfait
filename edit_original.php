@@ -39,145 +39,63 @@ $hasPrerempli = $fromSuggestions && (
     <link rel="stylesheet" href="style.css">
     <style>
         .page-header {
-            padding: 2.5rem 0 1.75rem;
-            border-bottom: 2px solid var(--encre);
-            margin-bottom: 2.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            flex-wrap: wrap;
-            gap: 1rem;
+            padding: 2.5rem 0 1.75rem; border-bottom: 2px solid var(--encre);
+            margin-bottom: 2.5rem; display: flex; justify-content: space-between;
+            align-items: flex-end; flex-wrap: wrap; gap: 1rem;
         }
         .page-titre { font-size: 1.75rem; font-weight: normal; letter-spacing: .04em; margin: 0 0 .2rem; }
         .page-titre-imparfait { font-style: italic; color: var(--brun); }
         .page-sous-titre { font-style: italic; color: var(--brun-clair); font-size: var(--taille-sm); margin: 0; }
-
-        /* Sections */
         .form-section { margin-bottom: 2rem; }
         .form-section-titre {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--brun-clair);
-            margin: 0 0 1.25rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--bordure);
+            font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em;
+            color: var(--brun-clair); margin: 0 0 1.25rem;
+            padding-bottom: 0.5rem; border-bottom: 1px solid var(--bordure);
         }
-
-        /* Optionnel */
-        .optionnel {
-            font-size: var(--taille-xs);
-            color: var(--brun-clair);
-            font-weight: normal;
-            font-style: italic;
-            margin-left: 0.3rem;
-        }
-
-        /* Convention M */
-        .convention-m {
-            font-size: var(--taille-xs);
-            color: var(--brun);
-            font-style: italic;
-            margin-bottom: 0.5rem;
-            line-height: 1.55;
-        }
-
-        /* Hint select multiple */
-        .select-hint {
-            display: block;
-            font-size: var(--taille-xs);
-            color: var(--brun-clair);
-            font-style: italic;
-            margin-top: -0.9rem;
-            margin-bottom: 1.25rem;
-        }
-
-        /* Champ pré-rempli */
-        .prerempli {
-            border-color: var(--brun) !important;
-            background: var(--fond-doux) !important;
-        }
-
+        .optionnel { font-size: var(--taille-xs); color: var(--brun-clair); font-weight: normal; font-style: italic; margin-left: 0.3rem; }
+        #bloc-genre { display: block; }
+        #bloc-genre.hidden { display: none; }
+        .convention-m { font-size: var(--taille-xs); color: var(--brun); font-style: italic; margin-bottom: 0.5rem; line-height: 1.55; }
+        .select-hint { display: block; font-size: var(--taille-xs); color: var(--brun-clair); font-style: italic; margin-top: -0.9rem; margin-bottom: 1.25rem; }
+        .prerempli { border-color: var(--brun) !important; background: var(--fond-doux) !important; }
         .prerempli-badge {
-            display: inline-block;
-            font-size: .68rem;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            color: var(--brun);
-            background: var(--fond-tag);
-            border-radius: 999px;
-            padding: .1rem .5rem;
-            margin-left: .4rem;
-            vertical-align: middle;
+            display: inline-block; font-size: .68rem; text-transform: uppercase;
+            letter-spacing: .06em; color: var(--brun); background: var(--fond-tag);
+            border-radius: 999px; padding: .1rem .5rem; margin-left: .4rem; vertical-align: middle;
         }
-
         .info-suggestion {
-            font-size: var(--taille-xs);
-            color: var(--brun);
-            font-style: italic;
-            margin-bottom: 1.25rem;
-            line-height: 1.6;
-            padding: .75rem 1rem;
-            background: var(--fond-doux);
-            border-radius: var(--rayon);
-            border-left: 3px solid var(--bordure-2);
+            font-size: var(--taille-xs); color: var(--brun); font-style: italic;
+            margin-bottom: 1.25rem; line-height: 1.6; padding: .75rem 1rem;
+            background: var(--fond-doux); border-radius: var(--rayon); border-left: 3px solid var(--bordure-2);
         }
-
-        /* Actions */
         .form-actions {
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--bordure);
-            margin-top: 0.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.75rem;
+            padding-top: 1.5rem; border-top: 1px solid var(--bordure); margin-top: 0.5rem;
+            display: flex; justify-content: flex-start; align-items: center; gap: 0.75rem;
         }
-
-        .analyse-loading {
-            display: none;
-            font-size: var(--taille-xs);
-            color: var(--brun);
-            font-style: italic;
-            margin-top: .5rem;
-        }
+        .form-actions .btn { min-width: 190px; text-align: center; justify-content: center; }
+        .analyse-loading { display: none; font-size: var(--taille-xs); color: var(--brun); font-style: italic; margin-top: .5rem; }
         .prompt-toggle {
-            all: unset;
-            box-sizing: border-box;
-            font-family: Georgia, serif;
-            font-size: var(--taille-xs);
-            color: var(--brun-clair);
-            cursor: pointer;
-            text-decoration: underline;
-            text-underline-offset: 2px;
-            display: block;
-            margin-top: 1.5rem;
+            all: unset; box-sizing: border-box; font-family: Georgia, serif;
+            font-size: var(--taille-xs); color: var(--brun-clair); cursor: pointer;
+            text-decoration: underline; text-underline-offset: 2px; display: block; margin-top: 1.5rem;
         }
         .prompt-toggle:hover { color: var(--brun); }
-        .prompt-bloc {
-            display: none;
-            margin-top: .75rem;
-            background: var(--fond-doux);
-            border: 1px solid var(--bordure);
-            border-radius: var(--rayon);
-            padding: 1rem 1.25rem;
-        }
+        .prompt-bloc { display: none; margin-top: .75rem; background: var(--fond-doux); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 1rem 1.25rem; }
         .prompt-bloc.open { display: block; }
-        .prompt-bloc pre {
-            font-family: "Courier New", monospace;
-            font-size: .7rem;
-            color: var(--encre-doux);
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-break: break-word;
-            margin: 0;
-        }
+        .prompt-bloc pre { font-family: "Courier New", monospace; font-size: .7rem; color: var(--encre-doux); line-height: 1.6; white-space: pre-wrap; word-break: break-word; margin: 0; }
         @media (max-width: 600px) {
             .page-header { flex-direction: column; align-items: flex-start; }
             .form-actions { flex-direction: column; }
             .form-actions .btn { text-align: center; width: 100%; }
         }
     </style>
+
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
 </head>
 <body>
 <div class="container">
@@ -196,7 +114,6 @@ $hasPrerempli = $fromSuggestions && (
     <?php if ($hasPrerempli): ?>
         <p class="info-suggestion">
             Les champs marqués <span class="prerempli-badge">suggestion</span> ont été pré-remplis avec les reformulations proposées.
-            Vérifiez, ajustez si besoin, puis enregistrez.
         </p>
     <?php endif; ?>
 
@@ -210,13 +127,33 @@ $hasPrerempli = $fromSuggestions && (
         <input name="mot" value="<?= h($mot['mot_original']) ?>" required>
 
         <label>Nature grammaticale</label>
-        <select name="type_mot" required>
+        <select name="type_mot" id="champ-type" required onchange="gererGenre(this.value)">
             <?php foreach (type_options() as $opt): ?>
                 <option value="<?= h($opt) ?>" <?= $opt === $mot['type_original'] ? 'selected' : '' ?>><?= h($opt) ?></option>
             <?php endforeach; ?>
         </select>
 
-        <label>Registres d'expérience <span class="requis">*</span></label>
+        <!-- Genre -->
+        <div id="bloc-genre">
+            <label>Genre <span class="optionnel">optionnel</span></label>
+            <select name="genre_mot">
+                <option value="" <?= empty($mot['genre_mot']) ? 'selected' : '' ?>>— Non précisé —</option>
+                <option value="masculin" <?= ($mot['genre_mot'] ?? '') === 'masculin' ? 'selected' : '' ?>>masculin</option>
+                <option value="féminin" <?= ($mot['genre_mot'] ?? '') === 'féminin' ? 'selected' : '' ?>>féminin</option>
+                <option value="masculin et féminin" <?= ($mot['genre_mot'] ?? '') === 'masculin et féminin' ? 'selected' : '' ?>>masculin et féminin</option>
+            </select>
+        </div>
+
+        <!-- Type d'entrée -->
+        <label>Nature du mot</label>
+        <select name="type_entree" required>
+            <option value="invente" <?= ($mot['type_entree'] ?? 'invente') === 'invente' ? 'selected' : '' ?>>Inventé</option>
+            <option value="reactive" <?= ($mot['type_entree'] ?? '') === 'reactive' ? 'selected' : '' ?>>Réactivé</option>
+            <option value="importe" <?= ($mot['type_entree'] ?? '') === 'importe' ? 'selected' : '' ?>>Importé</option>
+            <option value="ressuscite" <?= ($mot['type_entree'] ?? '') === 'ressuscite' ? 'selected' : '' ?>>Ressuscité</option>
+        </select>
+
+        <label>Registres d'expérience <span class="optionnel">*</span></label>
         <select name="registres_experience[]" multiple>
             <?php foreach ($registres as $r): ?>
                 <option value="<?= h($r['id']) ?>" <?= in_array((int)$r['id'], $selected, true) ? 'selected' : '' ?>>
@@ -296,31 +233,58 @@ $hasPrerempli = $fromSuggestions && (
     </div>
     <p class="analyse-loading" id="msg-loading">Analyse en cours, cela peut prendre quelques secondes…</p>
 
-    <!-- Prompt dépliable -->
-    <button type="button" class="prompt-toggle" onclick="document.getElementById('prompt-edit').classList.toggle('open'); this.textContent = this.textContent.includes('Voir') ? 'Masquer les critères d\'analyse ←' : 'Voir les critères d\'analyse →'">
-        Voir les critères d'analyse →
-    </button>
-    <div class="prompt-bloc" id="prompt-edit">
-        <?php
-        $promptTexte   = require __DIR__ . '/prompt.php';
-        $promptAffiche = preg_replace('/\{\$[^}]+\}/', '…', $promptTexte);
-        ?>
-        <pre><?= h($promptAffiche) ?></pre>
-    </div>
-
 </div>
 </form>
+
+<!-- Prompt dépliable -->
+<?php
+ob_start();
+$promptTexteLocal = require __DIR__ . '/prompt.php';
+ob_end_clean();
+$promptAffiche = preg_replace('/\{\$[^}]+\}/', '…', is_string($promptTexteLocal) ? $promptTexteLocal : '');
+?>
+<p style="font-size:var(--taille-xs);color:var(--brun-clair);font-style:italic;margin-top:1.5rem;margin-bottom:.3rem">
+    L'analyse est réalisée par <strong style="font-style:normal;color:var(--encre-doux)"><?= h($config['openai']['model']) ?></strong> d'OpenAI.
+</p>
+<button type="button" class="prompt-toggle" id="btn-prompt-edit" onclick="togglePrompt(this, 'prompt-edit')">Voir les critères d'analyse →</button>
+<div class="prompt-bloc" id="prompt-edit">
+    <pre><?= h($promptAffiche) ?></pre>
+</div>
 
 <?php include __DIR__ . '/footer.php'; ?>
 </div>
 <script>
+function togglePrompt(btn, id) {
+    var v = '<?= defined("PROMPT_VERSION") ? h(PROMPT_VERSION) : "" ?>';
+    document.getElementById(id).classList.toggle('open');
+    var ouvert = document.getElementById(id).classList.contains('open');
+    btn.textContent = (ouvert ? "Masquer les critères d'analyse ←" : "Voir les critères d'analyse →") + (v ? ' v' + v : '');
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('btn-prompt-edit');
+    if (btn) {
+        var v = '<?= defined("PROMPT_VERSION") ? h(PROMPT_VERSION) : "" ?>';
+        btn.textContent = "Voir les critères d'analyse →" + (v ? ' v' + v : '');
+    }
+    gererGenre(document.getElementById('champ-type').value);
+});
+
 function lancerAnalyse() {
     var form = document.querySelector('form');
     if (!form.checkValidity()) return;
-    setTimeout(function() {
-        document.getElementById('msg-loading').style.display = 'block';
-        document.getElementById('btn-analyser').disabled = true;
-    }, 50);
+    document.getElementById('msg-loading').style.display = 'block';
+    document.getElementById('btn-analyser').style.opacity = '0.5';
+    document.getElementById('btn-analyser').style.pointerEvents = 'none';
+}
+
+function gererGenre(type) {
+    var bloc = document.getElementById('bloc-genre');
+    if (type === 'nom commun') {
+        bloc.classList.remove('hidden');
+    } else {
+        bloc.classList.add('hidden');
+    }
 }
 </script>
 </body>

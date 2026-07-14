@@ -13,6 +13,14 @@ if (!$id) {
     exit('ID manquant.');
 }
 
+// Rate limiting TTS : max 20 lectures par session
+if (!isset($_SESSION['tts_count'])) $_SESSION['tts_count'] = 0;
+if ($_SESSION['tts_count'] >= 20) {
+    http_response_code(429);
+    exit('Limite de lectures atteinte.');
+}
+$_SESSION['tts_count']++;
+
 $pdo  = db($config);
 $stmt = $pdo->prepare("
     SELECT mot_original, type_original, etymologie_originale,

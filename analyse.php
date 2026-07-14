@@ -6,9 +6,10 @@
 require_once __DIR__ . '/app/bootstrap.php';
 
 define('SEUIL_BAS',  8);
-define('SEUIL_HAUT', 14);
+define('SEUIL_HAUT', 16);
 
-$id = (int) ($_GET['id'] ?? 0);
+$id        = (int) ($_GET['id'] ?? 0);
+$modeAdmin = !empty($_GET['admin']);
 if (!$id) die('ID manquant.');
 
 $pdo  = db($config);
@@ -99,6 +100,11 @@ $scoreUtilite = 0;
 foreach (($analyse['utilite'] ?? []) as $item) $scoreUtilite += (int)($item['note'] ?? 0);
 $scoreTotal = $scoreCoherence + $scoreUtilite;
 
+// Max par section
+$maxCoherence = 10;
+$maxUtilite   = 10;
+$maxTotal     = 20;
+
 // ── Vérification format étymologie ──
 $etymValide = false;
 $etymMotif = "/^(Du|De l'|De |Emprunté à|Altération de|Formé sur|Dérivé de|Issu de)/u";
@@ -106,7 +112,6 @@ if (!empty($mot['etymologie_originale'])) {
     $etym = trim($mot['etymologie_originale']);
     $etymValide = preg_match($etymMotif, $etym) && substr($etym, -1) === '.';
 }
-
 
 // Seuil "n'importe quoi" — proposition manifestement hors sujet
 $nbZeros = 0;
@@ -130,9 +135,9 @@ if (!$zeroCritere) {
 // ── Couleur selon score ──
 function scoreColor(int $score, int $max): string {
     $pct = $max > 0 ? $score / $max : 0;
-    if ($pct >= 0.8) return '#1d6b35';  // vert
-    if ($pct >= 0.5) return '#8a5a00';  // orange
-    return '#9b1c1c';                    // rouge
+    if ($pct >= 0.8) return '#1d6b35';
+    if ($pct >= 0.5) return '#8a5a00';
+    return '#9b1c1c';
 }
 
 // ── Suggestions ──
@@ -142,10 +147,29 @@ foreach ($suggs as $s) {
     if (!empty($s['reformulation']) || !empty($s['suggestion'])) { $hasSugg = true; break; }
 }
 
+// ── Helper type + genre + type_entree ──
+function type_entree_label(string $val): string {
+    return match($val) {
+        'reactive'   => 'réactivé',
+        'importe'    => 'importé',
+        'ressuscite' => 'ressuscité',
+        default      => 'inventé',
+    };
+}
+function type_avec_genre_analyse(array $mot): string {
+    $type   = h($mot['type_original']);
+    $genre  = !empty($mot['genre_mot']) ? ' ' . h($mot['genre_mot']) : '';
+    $entree = ($mot['type_entree'] ?? 'invente') !== 'invente'
+        ? ' · ' . h(type_entree_label($mot['type_entree']))
+        : '';
+    return $type . $genre . $entree;
+}
+
 // ── Labels ──
 function conformite_label(string $key): string {
     return [
         'existence_francais'  => "Le mot n'existe pas déjà en français avec ce sens",
+        'coherence_categorie' => "La fiche est cohérente avec la nature du mot déclarée",
         'etymologie_credible' => "L'étymologie est crédible et bien construite",
         'forme_mot'           => "Le mot est prononçable et compatible avec le français",
         'rapport_experience'  => "La définition exprime une expérience vécue ou une manière d'être au monde",
@@ -158,7 +182,7 @@ function conformite_label(string $key): string {
 function coherence_label(string $key): string {
     return [
         'mot_nature'          => "Le mot correspond à sa nature grammaticale",
-        'mot_etymologie'      => "L'étymologie est cohérente avec le mot",
+        'mot_etymologie'      => "L'étymologie est sémantiquement cohérente avec le sens du mot",
         'definition_registre' => "La définition correspond à son registre stylistique",
         'extension_coherente' => "La définition par extension découle logiquement de la principale",
         'exemple_definition'  => "L'exemple illustre correctement la définition",
@@ -171,6 +195,7 @@ function utilite_label(string $key): string {
         'utilite_usage'           => "Le mot pourrait être réellement employé",
         'puissance_expressive'    => "Le mot a une force évocatrice, une belle sonorité",
         'qualite_lexicographique' => "Le style d'écriture est soutenu, précis, publiable",
+        'niveau_dictionnaire'     => "Le mot atteint le niveau qualitatif du dictionnaire",
     ][$key] ?? $key;
 }
 
@@ -207,7 +232,6 @@ function suggestion_titre(string $key): string {
         .page-titre-imparfait { font-style: italic; color: var(--brun); }
         .page-sous-titre { font-style: italic; color: var(--brun-clair); font-size: var(--taille-sm); margin: 0; }
 
-        /* Mot */
         .entree-mot-nom { font-size: 1.15rem; font-weight: bold; margin-right: .45rem; }
         .entree-type-txt { font-style: italic; color: var(--brun); font-size: var(--taille-sm); }
         .entree-etym {
@@ -223,22 +247,16 @@ function suggestion_titre(string $key): string {
         .entree-ex { font-style: italic; color: var(--encre-doux); font-size: .9rem; margin: .45rem 0 .55rem; line-height: 1.6; }
         .entree-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; }
 
-        /* Bloc notes */
         .note-globale { display: flex; align-items: baseline; gap: 1.25rem; margin-bottom: .75rem; flex-wrap: wrap; }
         .note-chiffre { font-size: 2.8rem; font-weight: bold; line-height: 1; }
         .note-sur { font-size: 1.1rem; font-weight: normal; }
         .note-verdict { font-size: var(--taille-sm); font-style: italic; }
         .note-commentaire {
-            font-size: var(--taille-sm);
-            color: var(--encre-doux);
-            line-height: 1.7;
-            margin: .75rem 0 0;
-            padding: .9rem 1rem;
-            background: var(--fond-doux);
-            border-radius: var(--rayon);
+            font-size: var(--taille-sm); color: var(--encre-doux); line-height: 1.7;
+            margin: .75rem 0 0; padding: .9rem 1rem;
+            background: var(--fond-doux); border-radius: var(--rayon);
         }
 
-        /* Sous-sections */
         .sous-note { border-top: 1px solid var(--bordure); padding: .9rem 0 0; margin-top: .9rem; }
         .sous-note-header {
             display: flex; align-items: center; justify-content: space-between;
@@ -256,7 +274,6 @@ function suggestion_titre(string $key): string {
         .sous-note-corps { display: none; padding-bottom: .5rem; }
         .sous-note.open .sous-note-corps { display: block; }
 
-        /* Suggestions */
         .suggestion-item { padding: 1.1rem 0; border-top: 1px solid var(--bordure); }
         .suggestion-item:first-of-type { border-top: none; padding-top: 0; }
         .suggestion-check-row { display: flex; align-items: flex-start; gap: .75rem; }
@@ -279,17 +296,11 @@ function suggestion_titre(string $key): string {
             font-size: var(--taille-sm); color: var(--encre-doux);
             font-style: italic; line-height: 1.65;
         }
-        .suggestion-simple { font-size: var(--taille-sm); color: var(--encre-doux); line-height: 1.6; }
-        .suggestion-explication { font-size: var(--taille-xs); color: var(--brun-clair); font-style: italic; margin-top: .2rem; }
         .suggestions-intro {
             font-size: var(--taille-xs); color: var(--brun); font-style: italic;
             line-height: 1.6; margin: 0 0 1.25rem;
         }
-
-        /* Bouton appliquer */
         .btn-appliquer-wrap { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--bordure); }
-
-        /* Actions */
         .actions-bloc { display: flex; gap: .75rem; flex-wrap: wrap; }
 
         @media (max-width: 600px) {
@@ -299,6 +310,13 @@ function suggestion_titre(string $key): string {
             .suggestion-comparaison { grid-template-columns: 1fr; }
         }
     </style>
+
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
 </head>
 <body>
 <div class="container">
@@ -317,7 +335,7 @@ function suggestion_titre(string $key): string {
 
     <p style="margin:0 0 .3rem">
         <span class="entree-mot-nom"><?= h($mot['mot_original']) ?></span>
-        <span class="entree-type-txt"><?= h($mot['type_original']) ?></span>
+        <span class="entree-type-txt"><?= type_avec_genre_analyse($mot) ?></span>
     </p>
     <?php if (!empty($mot['etymologie_originale'])): ?>
         <p class="entree-etym"><?= h($mot['etymologie_originale']) ?></p>
@@ -340,14 +358,12 @@ function suggestion_titre(string $key): string {
 </div>
 
 <!-- Avertissement format étymologie -->
-<?php
-$etymIaOk = ($analyse['conformite']['etymologie_credible']['ok'] ?? true) === true;
-?>
+<?php $etymIaOk = ($analyse['conformite']['etymologie_credible']['ok'] ?? true) === true; ?>
 <?php if (!$etymValide && !$etymIaOk && !empty($mot['etymologie_originale'])): ?>
 <div style="margin-bottom:1.25rem;padding:.85rem 1rem;background:#fff4dd;border:1px solid #e8c97a;border-radius:var(--rayon);font-size:var(--taille-xs);color:#8a5a00;line-height:1.6">
     <strong>Format d'étymologie à corriger.</strong>
     L'étymologie doit commencer par "Du", "De l'", "Emprunté à", "Formé sur"… et se terminer par un point.
-    Exemple : <em>Du latin somnium (« rêve »), désignant l'état de celui qui s'abandonne au sommeil.</em>
+    Exemple : <em>Du latin somnium « rêve », désignant l'état de celui qui s'abandonne au sommeil.</em>
 </div>
 <?php endif; ?>
 
@@ -356,7 +372,7 @@ $etymIaOk = ($analyse['conformite']['etymologie_credible']['ok'] ?? true) === tr
     <p style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--brun-clair);margin:0 0 1.25rem">Résultat de l'analyse</p>
 
     <div class="note-globale">
-        <span class="note-chiffre" style="color:<?= scoreColor($scoreTotal, 20) ?>">
+        <span class="note-chiffre" style="color:<?= scoreColor($scoreTotal, $maxTotal) ?>">
             <?= h($scoreTotal) ?><span class="note-sur" style="color:var(--brun-clair)">/20</span>
         </span>
         <span class="note-verdict">
@@ -382,11 +398,9 @@ $etymIaOk = ($analyse['conformite']['etymologie_credible']['ok'] ?? true) === tr
 
     <!-- Conformité -->
     <?php
-    $cfColor  = $bloquant ? '#9b1c1c' : '#1d6b35';
-    $cfBg     = $bloquant ? '#fdecec' : '#eef7ee';
-    $cfTexte  = $bloquant
-        ? "Un critère de conformité n'est pas respecté"
-        : "Les critères de conformité sont respectés";
+    $cfColor = $bloquant ? '#9b1c1c' : '#1d6b35';
+    $cfBg    = $bloquant ? '#fdecec' : '#eef7ee';
+    $cfTexte = $bloquant ? "Un critère de conformité n'est pas respecté" : "Les critères de conformité sont respectés";
     ?>
     <div class="sous-note <?= $bloquant ? 'open' : '' ?>" id="sn-conformite">
         <div class="sous-note-header" onclick="toggleSousNote('sn-conformite')">
@@ -415,12 +429,12 @@ $etymIaOk = ($analyse['conformite']['etymologie_credible']['ok'] ?? true) === tr
     </div>
 
     <!-- Cohérence -->
-    <?php $cohColor = scoreColor($scoreCoherence, 10); ?>
+    <?php $cohColor = scoreColor($scoreCoherence, $maxCoherence); ?>
     <div class="sous-note" id="sn-coherence">
         <div class="sous-note-header" onclick="toggleSousNote('sn-coherence')">
             <div class="sous-note-gauche">
                 <span class="sous-note-titre">Cohérence d'ensemble</span>
-                <span class="sous-note-score" style="color:<?= $cohColor ?>;background:var(--fond-tag)"><?= h($scoreCoherence) ?>/10</span>
+                <span class="sous-note-score" style="color:<?= $cohColor ?>;background:var(--fond-tag)"><?= h($scoreCoherence) ?>/<?= $maxCoherence ?></span>
             </div>
             <span class="sous-note-chevron">▼</span>
         </div>
@@ -441,12 +455,12 @@ $etymIaOk = ($analyse['conformite']['etymologie_credible']['ok'] ?? true) === tr
     </div>
 
     <!-- Utilité -->
-    <?php $utilColor = scoreColor($scoreUtilite, 10); ?>
+    <?php $utilColor = scoreColor($scoreUtilite, $maxUtilite); ?>
     <div class="sous-note" id="sn-utilite">
         <div class="sous-note-header" onclick="toggleSousNote('sn-utilite')">
             <div class="sous-note-gauche">
                 <span class="sous-note-titre">Utilité lexicographique</span>
-                <span class="sous-note-score" style="color:<?= $utilColor ?>;background:var(--fond-tag)"><?= h($scoreUtilite) ?>/10</span>
+                <span class="sous-note-score" style="color:<?= $utilColor ?>;background:var(--fond-tag)"><?= h($scoreUtilite) ?>/<?= $maxUtilite ?></span>
             </div>
             <span class="sous-note-chevron">▼</span>
         </div>
@@ -522,8 +536,6 @@ $etymIaOk = ($analyse['conformite']['etymologie_credible']['ok'] ?? true) === tr
             </div>
         <?php endforeach; ?>
 
-
-
         <div class="btn-appliquer-wrap">
             <button type="submit" class="btn" id="btn-appliquer">
                 Modifier mon mot<?php if($hasSugg): ?> avec les suggestions sélectionnées<?php endif; ?>
@@ -537,7 +549,29 @@ $etymIaOk = ($analyse['conformite']['etymologie_credible']['ok'] ?? true) === tr
 <div class="card">
     <p style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--brun-clair);margin:0 0 .75rem">Que faire maintenant ?</p>
 
-    <?php if ($propositionHorsJeu): ?>
+    <?php if ($modeAdmin): ?>
+        <!-- Vue admin : lecture seule -->
+        <p style="font-size:var(--taille-sm);color:var(--encre-doux);line-height:1.6;margin:0 0 1rem">
+            Vous consultez cette proposition en mode administration.
+        </p>
+        <div class="actions-bloc">
+            <a class="btn secondary" href="admin.php">Retour à l'administration</a>
+        </div>
+
+    <?php elseif ($mot['statut'] === 'en_attente'): ?>
+        <p style="font-size:var(--taille-sm);color:var(--encre-doux);line-height:1.6;margin:0 0 1rem">
+            Ce mot est en attente de validation éditoriale. Vous ne pouvez plus le modifier.
+        </p>
+
+    <?php elseif ($mot['statut'] === 'finalise'): ?>
+        <p style="font-size:var(--taille-sm);color:var(--encre-doux);line-height:1.6;margin:0 0 1rem">
+            Ce mot est publié dans le dictionnaire.
+        </p>
+        <div class="actions-bloc">
+            <a class="btn" href="dictionnaire.php">Voir le dictionnaire</a>
+        </div>
+
+    <?php elseif ($propositionHorsJeu): ?>
         <p style="font-size:var(--taille-sm);color:var(--encre-doux);line-height:1.6;margin:0 0 1rem">
             Cette proposition ne correspond pas aux critères du dictionnaire. Revenez à la saisie et proposez un mot qui exprime une expérience vécue ou une manière d'être au monde.
         </p>
@@ -579,12 +613,12 @@ $etymIaOk = ($analyse['conformite']['etymologie_credible']['ok'] ?? true) === tr
             <?php endif; ?>
         <?php else: ?>
             <p style="font-size:var(--taille-sm);color:var(--encre-doux);line-height:1.6;margin:0 0 1rem">
-                Le mot est solide. Vous pouvez le valider définitivement.
+                Le mot est solide. Vous pouvez le soumettre à la validation éditoriale.
             </p>
             <div class="actions-bloc">
                 <form method="post" action="finalize.php" style="margin:0">
                     <input type="hidden" name="id" value="<?= h($id) ?>">
-                    <button class="btn" type="submit">Valider définitivement</button>
+                    <button class="btn" type="submit">Soumettre pour validation</button>
                 </form>
                 <?php if (!$hasSugg): ?>
                     <a class="btn secondary" href="edit_original.php?id=<?= h($id) ?>">Affiner encore</a>
@@ -601,7 +635,6 @@ $etymIaOk = ($analyse['conformite']['etymologie_credible']['ok'] ?? true) === tr
 function toggleSousNote(id) {
     document.getElementById(id).classList.toggle('open');
 }
-
 function updateBtn() { /* bouton toujours actif */ }
 </script>
 </body>

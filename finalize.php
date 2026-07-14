@@ -1,6 +1,7 @@
 <?php
 /**
  * finalize.php — Validation définitive d'un mot.
+ * Passe le mot en statut "en_attente" pour validation éditoriale humaine.
  */
 
 require_once __DIR__ . '/app/bootstrap.php';
@@ -12,48 +13,61 @@ if (!$id) die('ID manquant.');
 
 try {
     $pdo  = db($config);
-    $stmt = $pdo->prepare('SELECT suggestions_ia, score_total FROM dictionnaire_mots WHERE id = :id');
+    $stmt = $pdo->prepare('SELECT * FROM dictionnaire_mots WHERE id = :id');
     $stmt->execute([':id' => $id]);
     $mot  = $stmt->fetch();
 
     if (!$mot) die('Mot introuvable.');
+    if ($mot['statut'] !== 'brouillon') die('Ce mot ne peut pas être soumis dans son état actuel.');
 
     $analyse = json_decode($mot['suggestions_ia'] ?? '', true);
 
     if ($analyse) {
-        // Vérifier les critères de conformité
         foreach (($analyse['conformite'] ?? []) as $item) {
             if (($item['ok'] ?? true) === false) {
-                die('Ce mot ne peut pas être finalisé : un critère de conformité est bloquant.');
+                die('Ce mot ne peut pas être soumis : un critère de conformité est bloquant.');
             }
         }
-        // Vérifier qu'aucun critère n'est à 0
         foreach (($analyse['coherence'] ?? []) as $item) {
             if ((int) ($item['note'] ?? 1) === 0) {
-                die('Ce mot ne peut pas être finalisé : un critère de cohérence est à zéro.');
+                die('Ce mot ne peut pas être soumis : un critère de cohérence est à zéro.');
             }
         }
         foreach (($analyse['utilite'] ?? []) as $item) {
             if ((int) ($item['note'] ?? 1) === 0) {
-                die('Ce mot ne peut pas être finalisé : un critère d\'utilité est à zéro.');
+                die('Ce mot ne peut pas être soumis : un critère d\'utilité est à zéro.');
             }
         }
     }
 
-    if ((int) $mot['score_total'] < 14) {
-        die('Score insuffisant pour finaliser ce mot (minimum 14/20).');
+    if ((int) $mot['score_total'] < 16) {
+        die('Score insuffisant pour soumettre ce mot (minimum 16/20).');
     }
 
     $pdo->prepare("
         UPDATE dictionnaire_mots
-        SET statut = 'finalise', updated_at = NOW()
+        SET statut = 'en_attente', updated_at = NOW()
         WHERE id = :id
     ")->execute([':id' => $id]);
 
-    header('Location: dictionnaire.php');
+    // ── Notifier l'éditeur ──
+    $emailEditeur = $config['contact']['email'] ?? '';
+    if ($emailEditeur) {
+        $sujet = '[Dictionnaire imparfait] Nouvelle proposition à valider : ' . $mot['mot_original'];
+        $corps  = "Un nouveau mot a été soumis et attend votre validation.\n\n"
+                . "Mot : " . $mot['mot_original'] . "\n"
+                . "Type : " . $mot['type_original'] . "\n"
+                . "Score : " . $mot['score_total'] . "/20\n\n"
+                . "Voir l'analyse : https://" . $_SERVER['HTTP_HOST'] . "/analyse.php?id=" . $id . "&admin=1\n"
+                . "Page d'administration : https://" . $_SERVER['HTTP_HOST'] . "/admin.php";
+        $entetes = "From: noreply@" . $_SERVER['HTTP_HOST'] . "\r\nContent-Type: text/plain; charset=UTF-8\r\n";
+        mail($emailEditeur, $sujet, $corps, $entetes);
+    }
+
+    header('Location: confirmation.php?id=' . $id);
     exit;
 
 } catch (Throwable $e) {
     error_log('finalize.php: ' . $e->getMessage());
-    die('Une erreur est survenue lors de la finalisation.');
+    die('Une erreur est survenue lors de la soumission.');
 }

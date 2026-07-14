@@ -398,3 +398,10 @@ th { color: var(--brun); font-weight: 600; }
     flex-wrap: wrap;
     align-items: center;
 }
+
+.ressource-date {
+    font-size: var(--taille-xs);
+    color: var(--brun-clair);
+    font-style: italic;
+    margin: 0 0 .5rem;
+}

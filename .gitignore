@@ -1,0 +1,8 @@
+config.php
+apropos.php
+*.log
+.DS_Store
+Thumbs.db
+.env
+vendor/
+node_modules/
